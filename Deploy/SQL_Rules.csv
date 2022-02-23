@@ -1,0 +1,80 @@
+Rule,Type,Description,Enable
+SRD0001,Design,Tables should have a natural key,Y
+SRD0002,Design,Tables should have a primary key,N
+SRD0003,Design,Primary Keys should avoid using GUIDS or wide VARCHAR columns,N
+SRD0004,Design,Columns on both sides of a foreign key should be indexed.,Y
+SRD0005,Design,Avoid the char column type except for short static length data,Y
+SRD0006,Design,Avoid select *,N
+SRD0009,Design,Wrap multiple action statements within a transaction,N
+SRD0010,Design,Start identity columns used in a primary key with a seed of 1000,N
+SRD0011,Design,Equality and inequality comparisons involving a NULL constant found. Use IS NULL or IS NOT NULL.,Y
+SRD0012,Design,Variable declared but never referenced or assigned.,Y
+SRD0013,Design,Wrap TRY..CATCH  around multiple data manipulation statements.,Y
+SRD0014,Design,TOP clause used in a query without an ORDER BY clause.,Y
+SRD0015,Design,Always use a column list in INSERT statements.,N
+SRD0016,Design,Input parameter never used.,Y
+SRD0017,Design,DELETE statement without row limiting conditions.,Y
+SRD0018,Design,UPDATE statement without row limiting conditions.,Y
+SRD0019,Design,Avoid joining with views.,Y
+SRD0020,Design,The query has issues with the join clause. It is either missing a backing foreign key or the join is missing one or more columns.,Y
+SRD0021,Design,Consider using EXISTS predicate instead of IN predicate.,N
+SRD0024,Design,Avoid executing dynamic code using EXECUTE statement.,Y
+SRD0025,Design,Avoid using column numbers in ORDER BY clause.,Y
+SRD0026,Design,Do not use VARCHAR or NVARCHAR data types without specifying length.,Y
+SRD0027,Design,Do not use DECIMAL or NUMERIC data types without specifying precision and scale.,Y
+SRD0028,Design,Consider prefixing column names with table name or table alias.,N
+SRD0030,Design,Avoid using Hints to force a particular behavior.,Y
+SRD0031,Design,Avoid using CHARINDEX function.,Y
+SRD0032,Design,Avoid OR operator in queries.,Y
+SRD0033,Design,Avoid using cursors.,Y
+SRD0034,Design,Do not use the NOLOCK clause,Y
+SRD0035,Design,"Do not use WAITFOR DELAY/TIME statement in stored procedures, functions, and triggers.",Y
+SRD0036,Design,Do not use SET ROWCOUNT to restrict the number of rows.,Y
+SRD0038,Design,Consider aliasing all table sources in the query.,Y
+SRD0039,Design,"Use fully qualified object names in SELECT, UPDATE, DELETE, MERGE and EXECUTE statements. [schema].[name]",Y
+SRD0041,Design,Avoid use of the SELECT INTO syntax.,Y
+SRD0043,Design,The arguments of the function 'COALESCE' are not of the same datatype.,Y
+SRD0044,Design,The RAISERROR statement with severity above 18 and requires WITH LOG clause.,Y
+SRD0045,Design,Excessive number of indexes on table found,Y
+SRD0046,Design,Do not use the real or float data types as they are approximate value data types.,Y
+SRD0047,Design,"Avoid using columns that match other columns by name, but are different in type or size",Y
+SRD0050,Design,The comparison expression always evaluates to TRUE or FALSE,Y
+SRD0051,Design,"Don’t use deprecated TEXT,NTEXT and IMAGE data types. ",Y
+SRD0052,Design,Index has exact duplicate or overlapping index,Y
+SRD0053,Design,Object has different collation than the rest of the database.,Y
+SRD0055,Design,The SQL module was created with ANSI_NULLS and/or QUOTED_IDENTIFIER options set to OFF,Y
+SRD0056,Design,Use OUTPUT or SCOPE_IDENTITY() instead of @@IDENTITY,Y
+SRD0057,Design,Do not mix DML with DDL statements. Group DDL statements at the beginning of procedures followed by DML statements,Y
+SRD0058,Design,Always use parameter names when calling stored procedures,Y
+SRD0060,Design,The procedure grants itself permissions. Possible missing GO command,Y
+SRD0061,Design,The database is configured with invalid options.,Y
+SRD0062,Design,Temp table not configured with COLLATION options,Y
+SRD0063,Design,Avoid the use of IF statements in stored procedures.,Y
+SRD0064,Design,Cache multiple calls to GETDATE or SYSDATETIME into a variable,Y
+SRN0001,Naming,Avoid 'fn_' prefix when naming functions.,Y
+SRN0002,Naming,Avoid 'sp_' prefix when naming stored procedures.,N
+SRN0006,Naming,Using two part naming on objects [Schema].[Name] is recommended,Y
+SRN0007,Naming,General naming violation.,Y
+SRP0001,Performance,Views should not use other views as a data source,Y
+SRP0002,Performance,Avoid using patterns that start with '%' with the LIKE keyword  (Sargable),Y
+SRP0003,Performance,Avoid using DISTINCT keyword inside of aggregate functions.,Y
+SRP0004,Performance,Avoid returning results in triggers.,Y
+SRP0005,Performance,SET NOCOUNT ON is recommended to be enabled in stored procedures and triggers,N
+SRP0006,Performance,"Avoid using not equal operator (<>,!=) in the WHERE clause.  (Sargable)",Y
+SRP0007,Performance,Local cursor not closed,Y
+SRP0008,Performance,Local cursor not explicitly deallocated,Y
+SRP0009,Performance,Avoid wrapping columns within a function in the WHERE clause. (Sargable),Y
+SRP0010,Performance,Avoid the use of functions with UPDATE / INSERT  / DELETE statements. (Halloween Protection),Y
+SRP0011,Performance,Avoid using NOT IN predicate in the WHERE clause.,Y
+SRP0012,Performance,Consider indexing the columns referenced by IN predicates in order to avoid table scans.,Y
+SRP0013,Performance,Consider replacing the OUTER JOIN with EXISTS,Y
+SRP0014,Performance,Avoid the use of table variables in join clauses,Y
+SRP0015,Performance,Avoid the use of calculations on columns in the where clause. (Sargable),Y
+SRP0016,Performance,Data types on both sides of an equality check should be the same in the where clause.  (Sargable),Y
+SRP0017,Performance,Avoid updating columns that are part of the primary key.  (Halloween Protection),N
+SRP0018,Performance,Query uses a high number of joins. ,Y
+SRP0020,Performance,Table does not have a clustered index,Y
+SRP0021,Performance,Avoid modification of parameters in a stored procedure prior to use in a select query,Y
+SRP0022,Performance,Consider using RECOMPILE query hint instead of WITH RECOMPILE option,Y
+SRP0023,Performance,When checking for existence use EXISTS instead of COUNT,Y
+SRP0024,Performance,Avoid the use of correlated subqueries except for very small tables,Y
