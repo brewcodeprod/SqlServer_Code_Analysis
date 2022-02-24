@@ -1,4 +1,4 @@
-VsSolutionPath = C:\\Users\\DV679DS\\OneDrive - EY\\Desktop\\Automation\\Code Review Automation\\SqlServer.Rules-feature-perf_rules_tests
+VsSolutionPath = C:\\Users\\DV679DS\\Git_Repositories\\SqlServer_Code_Analysis
 DBProjectPath = C:\\Users\\DV679DS\\OneDrive - EY\\Desktop\\Automation\\Code Review Automation\\TestDatabase\\TestDatabase\\TestDatabase.sqlproj
-SQLRulesPath = C:\\Users\\DV679DS\\Code_Review\\Code\\SQL_Rules.csv
+SQLRulesPath = C:\\Users\\DV679DS\\Git_Repositories\\SqlServer_Code_Analysis\\Deploy\\SQL_Rules.csv
 OutputPath = C:\\Users\\DV679DS\\Code_Review\\output

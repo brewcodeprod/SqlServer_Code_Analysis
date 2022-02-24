@@ -16,10 +16,10 @@ function buildVS
 		$msBuildExe = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\" -Include msbuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "amd64" } | %{$_.DirectoryName}
 		$msBuildExe = $msBuildExe + "\msbuild.exe"
 
-        if ($nuget) {
+<#         if ($nuget) {
             Write-Host "Restoring NuGet packages" -foregroundcolor green
             nuget restore "$($path)"
-        }
+        } #>
 
         if ($clean) {
             Write-Host "Cleaning $($path)" -foregroundcolor green
@@ -49,9 +49,11 @@ function Get-XmlNode([ xml ]$XmlDocument, [string]$NodePath, [string]$NamespaceU
 function Set-XmlElementsTextValue([ xml ]$XmlDocument, [string]$ElementPath, [string]$TextValue, [string]$NamespaceURI = "", [string]$NodeSeparatorCharacter = '.')
 {
     # Try and get the node.
-    $node = Get-XmlNode -XmlDocument $XmlDocument -NodePath $ElementPath -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
-
+    $nodes = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.PropertyGroup" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+	Write-Host $nodes
+	foreach($node in $nodes) {
     # If the node already exists, update its value.
+	$node = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.PropertyGroup.SqlCodeAnalysisRules" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
     if ($node)
     {
         $node.InnerText = $TextValue
@@ -78,13 +80,11 @@ function Set-XmlElementsTextValue([ xml ]$XmlDocument, [string]$ElementPath, [st
             throw "$parentNodePath does not exist in the xml."
         }
     }
+}	
 }
 
-function Get-Rules($sqlrulespath, $dbobjectpath) {
-	$Prop = ConvertFrom-StringData (Get-Content .\Properties.txt -raw)
-	$dbobjectpath = $Prop.DBProjectPath
-
-	$currentpath = Get-Location | Select -ExpandProperty Path
+function Get-Rules($sqlrulespath, $dbobjectpath, $msBuildExe, $outputpath) {
+	
 	$rules = Import-Csv $sqlrulespath
 
 	$exclusion = "-Microsoft.Rules.Data.SR0001;-Microsoft.Rules.Data.SR0004;-Microsoft.Rules.Data.SR0005;-Microsoft.Rules.Data.SR0006;-Microsoft.Rules.Data.SR0007;-Microsoft.Rules.Data.SR0008;-Microsoft.Rules.Data.SR0009;-Microsoft.Rules.Data.SR0010;-Microsoft.Rules.Data.SR0011;-Microsoft.Rules.Data.SR0012;-Microsoft.Rules.Data.SR0013;-Microsoft.Rules.Data.SR0014;-Microsoft.Rules.Data.SR0015;-Microsoft.Rules.Data.SR0016;"
@@ -101,7 +101,24 @@ function Get-Rules($sqlrulespath, $dbobjectpath) {
 		$exclusion = $exclusion.Substring(0,$exclusion.Length-1)
 
 		$xml = [Xml] (Get-Content $dbobjectpath)
+				
+		$NamespaceURI = ""
+		if ([string]::IsNullOrEmpty($NamespaceURI)) { $NamespaceURI = $xml.DocumentElement.NamespaceURI }		
+		$xmlNsManager = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+		$xmlNsManager.AddNamespace("ns", $NamespaceURI)
+		$nodes = $xml.SelectNodes('/ns:Project/ns:PropertyGroup', $xmlNsManager)	
 
-		Set-XmlElementsTextValue -XmlDocument $xml -ElementPath "Project.PropertyGroup.SqlCodeAnalysisRules" -TextValue $exclusion
-		$xml.Save($dbobjectpath)	
-	}	
+		foreach($node in $nodes) {
+			$RunSqlCodeAnalysis = $xml.CreateElement("RunSqlCodeAnalysis")	
+			$SqlCodeAnalysisRules = $xml.CreateElement("SqlCodeAnalysisRules")
+			
+			$RunSqlCodeAnalysis.InnerText = "True"
+			$SqlCodeAnalysisRules.InnerText = $exclusion
+			
+			$node.AppendChild($RunSqlCodeAnalysis) | Out-Null	
+			$node.AppendChild($SqlCodeAnalysisRules) | Out-Null		
+		}							
+
+		$xml = [xml] $xml.OuterXml.Replace(" xmlns=`"`"", "")
+		$xml.Save($dbobjectpath)				
+}	
