@@ -13,8 +13,8 @@ function buildVS
     )
     process
     {
-		$msBuildExe = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\" -Include msbuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "amd64" } | %{$_.DirectoryName}
-		$msBuildExe = $msBuildExe + "\msbuild.exe"
+		$msBuildExe = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\" -Include MSBuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "amd64" } | %{$_.DirectoryName} | Select-Object -First 1
+		$msBuildExe = $msBuildExe + "\MSBuild.exe"
 
 <#         if ($nuget) {
             Write-Host "Restoring NuGet packages" -foregroundcolor green
