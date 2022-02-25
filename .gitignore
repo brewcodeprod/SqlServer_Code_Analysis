@@ -327,3 +327,7 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
+
+# Added by Kishan
+Deploy/output/
+/TestDatabase/TestDatabase-bkp.sqlproj

@@ -42,18 +42,18 @@ function Get-XmlNode([ xml ]$XmlDocument, [string]$NodePath, [string]$NamespaceU
     $fullyQualifiedNodePath = "/ns:$($NodePath.Replace($($NodeSeparatorCharacter), '/ns:'))"
 
     # Try and get the node, then return it. Returns $null if the node was not found.
-    $node = $XmlDocument.SelectSingleNode($fullyQualifiedNodePath, $xmlNsManager)
-    return $node
+	#Commented by Kishan on 2022-02-25. It is returning the firt node. We need all nodes.
+    #$node = $XmlDocument.SelectSingleNode($fullyQualifiedNodePath, $xmlNsManager)
+	$nodes = $XmlDocument.SelectNodes($fullyQualifiedNodePath, $xmlNsManager)
+    return $nodes
 }
 
 function Set-XmlElementsTextValue([ xml ]$XmlDocument, [string]$ElementPath, [string]$TextValue, [string]$NamespaceURI = "", [string]$NodeSeparatorCharacter = '.')
 {
     # Try and get the node.
-    $nodes = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.PropertyGroup" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
-	Write-Host $nodes
-	foreach($node in $nodes) {
+    $node = Get-XmlNode -XmlDocument $XmlDocument -NodePath $ElementPath -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+
     # If the node already exists, update its value.
-	$node = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.PropertyGroup.SqlCodeAnalysisRules" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
     if ($node)
     {
         $node.InnerText = $TextValue
@@ -63,7 +63,7 @@ function Set-XmlElementsTextValue([ xml ]$XmlDocument, [string]$ElementPath, [st
     {
         # Create the new element with the given value.
         $elementName = $ElementPath.SubString($ElementPath.LastIndexOf($NodeSeparatorCharacter) + 1)
-         $element = $XmlDocument.CreateElement($elementName, $XmlDocument.DocumentElement.NamespaceURI)
+        $element = $XmlDocument.CreateElement($elementName, $XmlDocument.DocumentElement.NamespaceURI)
         $textNode = $XmlDocument.CreateTextNode($TextValue)
         $element.AppendChild($textNode) > $null
 
@@ -81,13 +81,38 @@ function Set-XmlElementsTextValue([ xml ]$XmlDocument, [string]$ElementPath, [st
         }
     }
 }	
+
+function Upsert-SQL-Rules([xml]$XmlDocument, [string]$ElementPath, [string]$Element, [string]$ElementValue, [string]$NamespaceURI = "", [string]$NodeSeparatorCharacter = '.') {
+    $node = Get-XmlNode -XmlDocument $XmlDocument -NodePath $ElementPath -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+
+	$parentNode = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.PropertyGroup" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+	
+    if ($node)
+    {
+		Write-Host "Node already exists. Updating the node text value."
+		foreach ($n in $parentNode) {
+			if ($n.$Element) {
+				$n.$Element = $ElementValue
+			}
+		}
+    }	
+	else {
+	
+	Write-Host "Creating a new node."
+	foreach ($n in $parentNode) {
+		$createNode = $XmlDocument.CreateElement($Element)		
+		$createNode.InnerText = $ElementValue		
+		$n.AppendChild($createNode) | Out-Null		
+	}
+	}				
+
 }
 
-function Get-Rules($sqlrulespath, $dbobjectpath, $msBuildExe, $outputpath) {
+function Set-SQL-Rules($sqlrulespath, $dbobjectpath) {
 	
 	$rules = Import-Csv $sqlrulespath
 
-	$exclusion = "-Microsoft.Rules.Data.SR0001;-Microsoft.Rules.Data.SR0004;-Microsoft.Rules.Data.SR0005;-Microsoft.Rules.Data.SR0006;-Microsoft.Rules.Data.SR0007;-Microsoft.Rules.Data.SR0008;-Microsoft.Rules.Data.SR0009;-Microsoft.Rules.Data.SR0010;-Microsoft.Rules.Data.SR0011;-Microsoft.Rules.Data.SR0012;-Microsoft.Rules.Data.SR0013;-Microsoft.Rules.Data.SR0014;-Microsoft.Rules.Data.SR0015;-Microsoft.Rules.Data.SR0016;"
+	$exclusion = "-Microsoft.Rules.Data.SR0001;-Microsoft.Rules.Data.SR0004;-Microsoft.Rules.Data.SR0005;-Microsoft.Rules.Data.SR0006;-Microsoft.Rules.Data.SR0007;-Microsoft.Rules.Data.SR0008;-Microsoft.Rules.Data.SR0009;-Microsoft.Rules.Data.SR0010;-Microsoft.Rules.Data.SR0011;-Microsoft.Rules.Data.SR0012;-Microsoft.Rules.Data.SR0013;-Microsoft.Rules.Data.SR0014;-Microsoft.Rules.Data.SR0015;-Microsoft.Rules.Data.SR0016;"	
 
 	foreach($line in $rules)
 		{
@@ -98,27 +123,73 @@ function Get-Rules($sqlrulespath, $dbobjectpath, $msBuildExe, $outputpath) {
 			}
 		}
 
-		$exclusion = $exclusion.Substring(0,$exclusion.Length-1)
-
-		$xml = [Xml] (Get-Content $dbobjectpath)
-				
-		$NamespaceURI = ""
-		if ([string]::IsNullOrEmpty($NamespaceURI)) { $NamespaceURI = $xml.DocumentElement.NamespaceURI }		
-		$xmlNsManager = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
-		$xmlNsManager.AddNamespace("ns", $NamespaceURI)
-		$nodes = $xml.SelectNodes('/ns:Project/ns:PropertyGroup', $xmlNsManager)	
-
-		foreach($node in $nodes) {
-			$RunSqlCodeAnalysis = $xml.CreateElement("RunSqlCodeAnalysis")	
-			$SqlCodeAnalysisRules = $xml.CreateElement("SqlCodeAnalysisRules")
-			
-			$RunSqlCodeAnalysis.InnerText = "True"
-			$SqlCodeAnalysisRules.InnerText = $exclusion
-			
-			$node.AppendChild($RunSqlCodeAnalysis) | Out-Null	
-			$node.AppendChild($SqlCodeAnalysisRules) | Out-Null		
-		}							
+		$SqlCodeAnalysisRulesNode = "SqlCodeAnalysisRules"
+		$SqlCodeAnalysisRules = $exclusion.Substring(0,$exclusion.Length-1)		
+		
+		$RunSqlCodeAnalysisNode = "RunSqlCodeAnalysis"		
+		$RunSqlCodeAnalysis = "True"		
+		
+		$xml = [Xml] (Get-Content $dbobjectpath)	
+		
+		Upsert-SQL-Rules -XmlDocument $xml -ElementPath "Project.PropertyGroup.SqlCodeAnalysisRules" -Element $RunSqlCodeAnalysisNode -ElementValue $RunSqlCodeAnalysis		
+		Upsert-SQL-Rules -XmlDocument $xml -ElementPath "Project.PropertyGroup.RunSqlCodeAnalysis" -Element $SqlCodeAnalysisRulesNode -ElementValue $SqlCodeAnalysisRules		
 
 		$xml = [xml] $xml.OuterXml.Replace(" xmlns=`"`"", "")
 		$xml.Save($dbobjectpath)				
 }	
+
+Function ConvertFrom-XMLtoCSV {
+    [CmdletBinding()]
+    <#
+    .Synopsis
+       Convert a uniform XML file to CSV with element names as headers
+    .DESCRIPTION
+       Takes a uniformed XML tree and converts it to CSV based on the XPath given.
+
+       For example, assume a structure like this:
+       <root>
+           <item>
+               <element1>Content1</element1>
+               <element2>Content2</element2>
+           </item>
+           <item>
+               <element1>Content1</element1>
+               <element2>Content2</element2>
+           </item>
+       <root>
+
+    .PARAMETER Path
+        The path to the XML File
+
+    .PARAMETER XPath
+        The XPath query to the items that should be converted
+
+    .EXAMPLE
+       ConvertFrom-XMLtoCSV -Path .\file.xml -XPath "//item" 
+    #> 
+    Param (
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true,Position=0)][String] $Path,
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$true,Position=1)][String] $XPath
+    )
+    Begin {
+        if (Test-Path $Path) {
+            [XML] $XML = Get-Content $Path -Raw
+        } else {
+            Throw [System.IO.FileNotFoundException] "XML file was not found at the given path"
+        }
+        $NodeCount = $XML.SelectNodes($XPath).Count
+        $FileHeaders = [System.String]::Join(",",$($XML.SelectNodes("$XPath[1]/node()") | ForEach-Object { $_.ToString()}))
+        $Content = @()
+    }
+    Process {
+        $Content += $FileHeaders
+        For ($i = 1; $i -le $NodeCount; $i++) { 
+            $Content += [System.String]::Join(",",$($xml.SelectNodes("$XPath[$i]/node()") | ForEach-Object {$_."#text"}))
+        }
+
+        return $Content		
+		
+		#New-Item C:\Lijith\test\csv\test1.csv -ItemType File
+		#Set-Content C:\Lijith\test\csv\test1.csv $Content
+    }
+}

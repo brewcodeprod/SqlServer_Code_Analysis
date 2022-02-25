@@ -17,8 +17,8 @@ buildVS $mainsolutionpath
 Write-Host "Build completed"
 
 #Move the required files to the visual studio extension folders
-$d1 = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\" -Recurse | Where-Object { $_.Name -match '^[0-9]*DAC' } | %{ $_.FullName }
-$d = Get-ChildItem $d1[0] -Recurse | Where-Object { $_.Name -match '^[0-9]*Extensions' } | %{ $_.FullName }
+$d1 = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\" -Recurse | Where-Object { $_.Name -match '^[0-9]*DAC' } | %{ $_.FullName } | Select-Object -First 1
+$d = Get-ChildItem $d1 -Recurse | Where-Object { $_.Name -match '^[0-9]*Extensions' } | %{ $_.FullName }
 
 Write-Host "Move the dll and pdb files to the required visual studio folders...."
 foreach ($files in $d) 
@@ -28,5 +28,3 @@ foreach ($files in $d)
 	Copy-Item -Path $mainsolutionpath\SqlServer.Rules\bin\Debug\SqlServer.Dac.dll -Destination $files
 	Copy-Item -Path $mainsolutionpath\SqlServer.Rules\bin\Debug\SqlServer.Dac.pdb -Destination $files
 }
-
-Get-Rules($sqlrulespath, $dbobjectpath)
