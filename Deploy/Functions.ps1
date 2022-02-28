@@ -16,10 +16,11 @@ function buildVS
 		$msBuildExe = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\" -Include MSBuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "amd64" } | %{$_.DirectoryName} | Select-Object -First 1
 		$msBuildExe = $msBuildExe + "\MSBuild.exe"
 
-<#         if ($nuget) {
+        if ($nuget) {
             Write-Host "Restoring NuGet packages" -foregroundcolor green
-            nuget restore "$($path)"
-        } #>
+            #nuget restore "$($path)"
+			& "$($msBuildExe)" "$($path)" /t:restore /m
+        }
 
         if ($clean) {
             Write-Host "Cleaning $($path)" -foregroundcolor green
@@ -188,8 +189,5 @@ Function ConvertFrom-XMLtoCSV {
         }
 
         return $Content		
-		
-		#New-Item C:\Lijith\test\csv\test1.csv -ItemType File
-		#Set-Content C:\Lijith\test\csv\test1.csv $Content
     }
 }

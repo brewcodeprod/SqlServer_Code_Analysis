@@ -50,11 +50,11 @@ if (Test-Path $csvFile) {
   write-host "CSVFile has been deleted"
 }
 else {
-  Write-host "CSVFile doesn't exist"
+  Write-host "CSV file does not exist."
 }
 
 $XMLConvertedData = ConvertFrom-XMLtoCSV -Path $xmlFile -XPath "//Problem" 
-write-host "CSV data loading..."
+#write-host "CSV data loading..."
 New-Item $csvFile -ItemType File
 Set-Content $csvFile $XMLConvertedData
 write-host "XML to CSV convertion completed..."

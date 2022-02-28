@@ -20,7 +20,7 @@ Write-Host "Build completed"
 $d1 = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\" -Recurse | Where-Object { $_.Name -match '^[0-9]*DAC' } | %{ $_.FullName } | Select-Object -First 1
 $d = Get-ChildItem $d1 -Recurse | Where-Object { $_.Name -match '^[0-9]*Extensions' } | %{ $_.FullName }
 
-Write-Host "Move the dll and pdb files to the required visual studio folders...."
+Write-Host "Moving the dll and pdb files to the required visual studio folders...."
 foreach ($files in $d) 
 { 
 	Copy-Item -Path $mainsolutionpath\SqlServer.Rules\bin\Debug\SqlServer.Rules.dll -Destination $files
