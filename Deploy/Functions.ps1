@@ -43,7 +43,7 @@ function Get-XmlNode([ xml ]$XmlDocument, [string]$NodePath, [string]$NamespaceU
     $fullyQualifiedNodePath = "/ns:$($NodePath.Replace($($NodeSeparatorCharacter), '/ns:'))"
 
     # Try and get the node, then return it. Returns $null if the node was not found.
-	#Commented by Kishan on 2022-02-25. It is returning the firt node. We need all nodes.
+	#Commented by Kishan on 2022-02-25. It is returning the first node. We need all nodes.
     #$node = $XmlDocument.SelectSingleNode($fullyQualifiedNodePath, $xmlNsManager)
 	$nodes = $XmlDocument.SelectNodes($fullyQualifiedNodePath, $xmlNsManager)
     return $nodes
@@ -99,17 +99,16 @@ function Upsert-SQL-Rules([xml]$XmlDocument, [string]$ElementPath, [string]$Elem
     }	
 	else {
 	
-	Write-Host "Creating a new node."
+	Write-Host "Creating a new node for" + $Element
 	foreach ($n in $parentNode) {
 		$createNode = $XmlDocument.CreateElement($Element)		
 		$createNode.InnerText = $ElementValue		
 		$n.AppendChild($createNode) | Out-Null		
 	}
 	}				
-
 }
 
-function Set-SQL-Rules($sqlrulespath, $dbobjectpath) {
+function Set-SQL-Rules($sqlrulespath, $dstSqlProjFilePath) {
 	
 	$rules = Import-Csv $sqlrulespath
 
@@ -130,13 +129,13 @@ function Set-SQL-Rules($sqlrulespath, $dbobjectpath) {
 		$RunSqlCodeAnalysisNode = "RunSqlCodeAnalysis"		
 		$RunSqlCodeAnalysis = "True"		
 		
-		$xml = [Xml] (Get-Content $dbobjectpath)	
+		$xml = [Xml] (Get-Content $dstSqlProjFilePath)	
 		
 		Upsert-SQL-Rules -XmlDocument $xml -ElementPath "Project.PropertyGroup.SqlCodeAnalysisRules" -Element $RunSqlCodeAnalysisNode -ElementValue $RunSqlCodeAnalysis		
 		Upsert-SQL-Rules -XmlDocument $xml -ElementPath "Project.PropertyGroup.RunSqlCodeAnalysis" -Element $SqlCodeAnalysisRulesNode -ElementValue $SqlCodeAnalysisRules		
 
 		$xml = [xml] $xml.OuterXml.Replace(" xmlns=`"`"", "")
-		$xml.Save($dbobjectpath)				
+		$xml.Save($dstSqlProjFilePath)				
 }	
 
 Function ConvertFrom-XMLtoCSV {
@@ -190,4 +189,52 @@ Function ConvertFrom-XMLtoCSV {
 
         return $Content		
     }
+}
+
+# 20220313 - Not used
+function Copy-SQL-Files([xml]$XmlDocument, [string]$ElementPath, [string]$Element, [string]$srcSqlObjectPath, [string]$dstSqlObjectPath, [string]$NamespaceURI = "", [string]$NodeSeparatorCharacter = '.') {
+    $node = Get-XmlNode -XmlDocument $XmlDocument -NodePath $ElementPath -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+
+	$parentNode = Get-XmlNode -XmlDocument $XmlDocument -NodePath "Project.ItemGroup" -NamespaceURI $NamespaceURI -NodeSeparatorCharacter $NodeSeparatorCharacter
+	
+	$tmpSrcSqlObjectPath = $srcSqlObjectPath
+    if ($node)
+    {
+		foreach ($n in $parentNode) {
+			foreach ($dr in ($n.$Element | select Include)) {
+				if ($dr.Include -eq "Properties") {
+						#Do Nothing
+				}
+				else {
+					$srcSqlObjectPath = $tmpSrcSqlObjectPath
+					$srcSqlObjectPath = $srcSqlObjectPath + "\" + $dr.Include
+					Write-Host "Source Path: " + $srcSqlObjectPath
+					Write-Host "Destination Path: " + $dstSqlObjectPath
+					
+					Copy-Item -Recurse -Filter *.sql -Path $srcSqlObjectPath -Destination $dstSqlObjectPath
+<# 					if (Test-Path $tmpDstSqlObjectPath) {
+					 
+						#Write-Host "Folder Exists"
+						Remove-Item $tmpDstSqlObjectPath -Force
+					}
+					else
+					{
+						Write-Host "Folder Doesn't Exists"
+					}
+#					Copy-Item -Filter *.sql -Path $srcSqlObjectPath -Destination $dstSqlObjectPath
+
+					if (-not (test-path $dstSqlObjectPath))
+					{
+					  $opts = @{'path' = $srcSqlObjectPath; 'destination' = $dstSqlObjectPath; 'confirm' = $false}
+					  copy-item @opts
+					}
+					else
+					{
+					   $opts = @{'path' = $srcSqlObjectPath; 'destination' = $dstSqlObjectPath; 'confirm' = $true}
+					   copy-item @opts
+					} #>
+				}
+			}
+		}
+    }	
 }

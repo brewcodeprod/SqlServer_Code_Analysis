@@ -4,7 +4,7 @@ SRD0002,Design,Tables should have a primary key,N
 SRD0003,Design,Primary Keys should avoid using GUIDS or wide VARCHAR columns,N
 SRD0004,Design,Columns on both sides of a foreign key should be indexed.,N
 SRD0005,Design,Avoid the char column type except for short static length data,N
-SRD0006,Design,Avoid select *,N
+SRD0006,Design,Avoid select *,Y
 SRD0009,Design,Wrap multiple action statements within a transaction,N
 SRD0010,Design,Start identity columns used in a primary key with a seed of 1000,N
 SRD0011,Design,Equality and inequality comparisons involving a NULL constant found. Use IS NULL or IS NOT NULL.,N

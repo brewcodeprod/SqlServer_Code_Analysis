@@ -1,0 +1,21 @@
+Deployment Steps:
+
+1. Download a zip file or clone the following Git repository in your system:
+https://github.com/brewcodeprod/SqlServer_Code_Analysis/tree/Dev_Code_Review
+
+2. All deployment scripts are under the Deploy folder in this repository. Update the Deploy/properties.txt file to match the paths in your system. Following are the properties in this file:
+VsSolutionPath = .NET solution path (cloned in the 1st step above)
+DBProjectPath = sqlproj file path along with the file name. This is the database project we want to analyse for SQL coding standards.
+SQLRulesPath = SQL_Rules.csv file path along with the file name
+OutputPath = Output path where SQL code analysis csv file will be stored
+Please make sure there is double backward slash in all the paths.
+
+3. Open powershell console as an administrator or just open it if you have admin rights in VDI. Change the directory to the Deploy folder and run the script as below:
+.\Build_Rule_Engine.ps1 > build_log.txt
+This script builds the rule engine and copies the required DLL and PDB files to visual studio extensions folder.
+
+4. Under the Deploy folder, enable (Y) or disable (N) the rules in the SQL_Rules.csv file.
+
+5. Run the powershell script as below:
+.\Run_DB_Code_Analysis.ps1 > analysis_log.txt
+This script will generate code analysis csv output file in the output path specified in the properties file.
