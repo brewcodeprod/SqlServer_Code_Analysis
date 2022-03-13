@@ -18,4 +18,5 @@ This script builds the rule engine and copies the required DLL and PDB files to 
 
 5. Run the powershell script as below:
 .\Run_DB_Code_Analysis.ps1 > analysis_log.txt
+It will copy the database project to the Deploy/db directory, and the SQL code analysis will be on this temporary directory.
 This script will generate code analysis csv output file in the output path specified in the properties file.
