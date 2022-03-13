@@ -8,9 +8,9 @@ VsSolutionPath = .NET solution path (cloned in the 1st step above)
 DBProjectPath = sqlproj file path along with the file name. This is the database project we want to analyse for SQL coding standards.
 SQLRulesPath = SQL_Rules.csv file path along with the file name
 OutputPath = Output path where SQL code analysis csv file will be stored
-Please make sure there is double backward slash in all the paths.
+Please make sure that there is double backward slash in all the paths.
 
-3. Open powershell console as an administrator or just open it if you have admin rights in VDI. Change the directory to the Deploy folder and run the script as below:
+3. Open powershell console as an administrator. Change the directory to the Deploy folder and run the script as below:
 .\Build_Rule_Engine.ps1 > build_log.txt
 This script builds the rule engine and copies the required DLL and PDB files to visual studio extensions folder.
 
