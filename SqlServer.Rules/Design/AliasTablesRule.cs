@@ -6,6 +6,7 @@ using Microsoft.SqlServer.TransactSql.ScriptDom;
 using System.Collections.Generic;
 using System.Linq;
 
+//Just for demo purpose
 namespace SqlServer.Rules.Design
 {
 	[ExportCodeAnalysisRule(RuleId,
